@@ -55,6 +55,9 @@
     </class>
 
     <!-- Add and edit form for rules -->
+
+    <adapter factory=".formhelper.layout_factory" />
+
     <browser:page
       for="plone.app.contentrules.browser.interfaces.IRuleAdding"
       name="plone.ContentRule"
@@ -147,15 +150,6 @@
         factory=".traversal.RuleActionNamespace"
         name="action"
         />
-
-
-    <!-- Default page layout for cont rules add/edit forms -->
-    <adapter
-      for=".interfaces.IContentRulesForm"
-      factory=".formhelper.contentrules_named_template_adapter"
-      name="default"
-      provides="zope.formlib.namedtemplate.INamedTemplate"
-      />
 
     <!-- When we access rules and elements, we still want to use a CMF/Plone
     main_template -->

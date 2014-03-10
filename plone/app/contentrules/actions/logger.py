@@ -1,8 +1,8 @@
 import logging
 
+from z3c.form import form
 from zope.component import adapts
 from zope.component.interfaces import IObjectEvent
-from zope.formlib import form
 from zope.interface import implements, Interface
 from zope import schema
 
@@ -28,17 +28,21 @@ class ILoggerAction(Interface):
     This is also used to create add and edit forms, below.
     """
 
-    targetLogger = schema.ASCIILine(title=_(u'Logger name'),
-                                    default='Plone')
+    targetLogger = schema.ASCIILine(
+        title=_(u'Logger name'),
+        default='Plone')
 
-    loggingLevel = schema.Int(title=_(u'Logging level'),
-                              default=20) # INFO
+    loggingLevel = schema.Int(
+        title=_(u'Logging level'),
+        default=20)  # INFO
 
-    message = schema.TextLine(title=_(u"Message"),
-                              description=_('help_contentrules_logger_message',
-                                            default=u"&e = the triggering event, &c = the context, &u = the user"),
-                              default=_('text_contentrules_logger_message',
-                                        default=u"Caught &e at &c by &u"))
+    message = schema.TextLine(
+        title=_(u"Message"),
+        description=_('help_contentrules_logger_message',
+                      default=u"&e = the triggering event, &c = the context, "
+                              u"&u = the user"),
+        default=_('text_contentrules_logger_message',
+                  default=u"Caught &e at &c by &u"))
 
 
 class LoggerAction(SimpleItem):
@@ -97,23 +101,19 @@ class LoggerActionExecutor(object):
 class LoggerAddForm(AddForm):
     """An add form for logger rule actions.
     """
-    form_fields = form.FormFields(ILoggerAction)
+    schema = ILoggerAction
     label = _(u"Add Logger Action")
     description = _(u"A logger action can output a message to the system log.")
-    form_name = _(u"Configure element")
 
     def create(self, data):
         a = LoggerAction()
-        form.applyChanges(a, self.form_fields, data)
+        form.applyChanges(self, a, data)
         return a
 
 
 class LoggerEditForm(EditForm):
     """An edit form for logger rule actions.
-
-    Formlib does all the magic here.
     """
-    form_fields = form.FormFields(ILoggerAction)
+    schema = ILoggerAction
     label = _(u"Edit Logger Action")
     description = _(u"A logger action can output a message to the system log.")
-    form_name = _(u"Configure element")

@@ -1,10 +1,9 @@
 from plone.contentrules.rule.interfaces import IExecutable, IRuleElementData
-from plone.app.form.widgets.uberselectionwidget import UberSelectionWidget
-from plone.app.vocabularies.catalog import SearchableTextSourceBinder
+from plone.app.vocabularies.catalog import CatalogSource
+from z3c.form import form
 from zope.component import adapts
 from zope.container.contained import notifyContainerModified
 from zope.event import notify
-from zope.formlib import form
 from zope.interface import implements, Interface
 from zope.lifecycleevent import ObjectMovedEvent
 from zope import schema
@@ -28,11 +27,12 @@ class IMoveAction(Interface):
     This is also used to create add and edit forms, below.
     """
 
-    target_folder = schema.Choice(title=_(u"Target folder"),
-                                  description=_(u"As a path relative to the portal root."),
-                                  required=True,
-                                  source=SearchableTextSourceBinder({'is_folderish': True},
-                                                                    default_query='path:'))
+    target_folder = schema.Choice(
+        title=_(u"Target folder"),
+        description=_(u"As a path relative to the portal root."),
+        required=True,
+        source=CatalogSource(is_folderish=True)
+        )
 
 
 class MoveAction(SimpleItem):
@@ -151,15 +151,13 @@ class MoveActionExecutor(object):
 class MoveAddForm(AddForm):
     """An add form for move-to-folder actions.
     """
-    form_fields = form.FormFields(IMoveAction)
-    form_fields['target_folder'].custom_widget = UberSelectionWidget
+    schema = IMoveAction
     label = _(u"Add Move Action")
     description = _(u"A move action can move an object to a different folder.")
-    form_name = _(u"Configure element")
 
     def create(self, data):
         a = MoveAction()
-        form.applyChanges(a, self.form_fields, data)
+        form.applyChanges(self, a, data)
         return a
 
 
@@ -168,8 +166,6 @@ class MoveEditForm(EditForm):
 
     Formlib does all the magic here.
     """
-    form_fields = form.FormFields(IMoveAction)
-    form_fields['target_folder'].custom_widget = UberSelectionWidget
+    schema = IMoveAction
     label = _(u"Edit Move Action")
     description = _(u"A move action can move an object to a different folder.")
-    form_name = _(u"Configure element")

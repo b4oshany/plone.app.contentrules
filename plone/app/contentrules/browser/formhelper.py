@@ -1,32 +1,32 @@
-from five.formlib import formbase
-from plone.app.form import named_template_adapter
-from plone.app.form.validators import null_validator
-from zope.component import getMultiAdapter
-from zope.event import notify
-from zope.formlib import form
-from zope.interface import implements
-import zope.lifecycleevent
-
 from Acquisition import aq_parent, aq_inner
-from Products.Five.browser import BrowserView
-from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-
 from plone.app.contentrules import PloneMessageFactory as _
 from plone.app.contentrules.browser.interfaces import IContentRulesForm
+from plone.app.z3cform.interfaces import IPloneFormLayer
+from plone.autoform.form import AutoExtensibleForm
+from plone.z3cform.templates import ZopeTwoFormTemplateFactory
+from Products.Five.browser import BrowserView
+from z3c.form import button
+from z3c.form import form
+from zope.component import getMultiAdapter
+from zope.event import notify
+from zope.interface import implements
+import os
+import zope.lifecycleevent
 
-# Add a named template form, which allows us to carry some extra information
-# about the referer
-_template = ViewPageTemplateFile('templates/contentrules-pageform.pt')
-contentrules_named_template_adapter = named_template_adapter(_template)
+
+layout_factory = ZopeTwoFormTemplateFactory(
+    os.path.join(os.path.dirname(__file__), 'templates', 'contentrules-pageform.pt'),
+    form=IContentRulesForm,
+    request=IPloneFormLayer)
 
 
-class AddForm(formbase.AddFormBase):
+class AddForm(AutoExtensibleForm, form.AddForm):
     """A base add form for content rule.
 
     Use this for rule elements that require configuration before being added to
     a rule. Element types that do not should use NullAddForm instead.
 
-    Sub-classes should define create() and set the form_fields class variable.
+    Sub-classes should define create() and set the `schema` class attribute.
 
     Notice the suble difference between AddForm and NullAddform in that the
     create template method for AddForm takes as a parameter a dict 'data':
@@ -49,18 +49,16 @@ class AddForm(formbase.AddFormBase):
         focus = self.context.id.strip('+')
         return '%s/++rule++%s/@@manage-elements#%s' % (url, rule.__name__, focus)
 
-    @form.action(_(u"label_save", default=u"Save"), name=u'save')
-    def handle_save_action(self, action, data):
-        self.createAndAdd(data)
-
-    @form.action(_(u"label_cancel", default=u"Cancel"),
-                 validator=null_validator,
-                 name=u'cancel')
-    def handle_cancel_action(self, action, data):
+    @button.buttonAndHandler(_(u"label_cancel", default=u"Cancel"), name='cancel')
+    def handle_cancel_action(self, action):
         nextURL = self.nextURL()
         if nextURL:
             self.request.response.redirect(self.nextURL())
         return ''
+
+    def add(self, ob):
+        ob = self.context.add(ob)
+        return ob
 
 
 class NullAddForm(BrowserView):
@@ -79,7 +77,6 @@ class NullAddForm(BrowserView):
         nextURL = self.nextURL()
         if nextURL:
             self.request.response.redirect(self.nextURL())
-        return ''
 
     def nextURL(self):
         rule = aq_parent(aq_inner(self.context))
@@ -91,35 +88,37 @@ class NullAddForm(BrowserView):
         raise NotImplementedError("concrete classes must implement create()")
 
 
-class EditForm(formbase.EditFormBase):
+class EditForm(AutoExtensibleForm, form.EditForm):
     """An edit form for rule elements.
     """
 
     implements(IContentRulesForm)
 
-    @form.action(_(u"label_save", default=u"Save"),
-                 condition=form.haveInputWidgets,
-                 name=u'save')
-    def handle_save_action(self, action, data):
-        if form.applyChanges(self.context, self.form_fields, data, self.adapters):
-            notify(zope.lifecycleevent.ObjectModifiedEvent(self.context))
-            self.status = "Changes saved"
+    @button.buttonAndHandler(
+        _(u"label_save", default=u"Save"),
+        name=u'save')
+    def handle_save_action(self, action):
+        data, errors = self.extractData()
+        if errors:
+            self.status = self.formErrorsMessage
+            return
+        changes = self.applyChanges(data)
+        if changes:
+            self.status = self.successMessage
         else:
-            self.status = "No changes"
+            self.status = self.noChangesMessage
 
         nextURL = self.nextURL()
         if nextURL:
             self.request.response.redirect(self.nextURL())
-        return ''
 
-    @form.action(_(u"label_cancel", default=u"Cancel"),
-                 validator=null_validator,
-                 name=u'cancel')
-    def handle_cancel_action(self, action, data):
+    @button.buttonAndHandler(
+        _(u"label_cancel", default=u"Cancel"),
+        name=u'cancel')
+    def handle_cancel_action(self, action):
         nextURL = self.nextURL()
         if nextURL:
             self.request.response.redirect(self.nextURL())
-        return ''
 
     def nextURL(self):
         element = aq_inner(self.context)

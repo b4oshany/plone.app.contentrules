@@ -1,6 +1,6 @@
 from plone.contentrules.rule.interfaces import IExecutable, IRuleElementData
+from z3c.form import form
 from zope.component import adapts
-from zope.formlib import form
 from zope.interface import implements, Interface
 from zope import schema
 
@@ -20,9 +20,10 @@ class IFileExtensionCondition(Interface):
     This is also used to create add and edit forms, below.
     """
 
-    file_extension = schema.TextLine(title=_(u"File extension"),
-                                    description=_(u"The file extension to check for"),
-                                    required=True)
+    file_extension = schema.TextLine(
+        title=_(u"File extension"),
+        description=_(u"The file extension to check for"),
+        required=True)
 
 
 class FileExtensionCondition(SimpleItem):
@@ -37,7 +38,9 @@ class FileExtensionCondition(SimpleItem):
 
     @property
     def summary(self):
-        return _(u"File extension is ${ext}", mapping=dict(ext=self.file_extension))
+        return _(
+            u"File extension is ${ext}",
+            mapping=dict(ext=self.file_extension))
 
 
 class FileExtensionConditionExecutor(object):
@@ -66,32 +69,30 @@ class FileExtensionConditionExecutor(object):
             return False
 
         name = get_filename()
-        extension = name[name.rfind('.')+1:]
+        extension = name[name.rfind('.') + 1:]
         return extension == self.element.file_extension
 
 
 class FileExtensionAddForm(AddForm):
     """An add form for file extension rule conditions.
     """
-    form_fields = form.FormFields(IFileExtensionCondition)
+    schema = IFileExtensionCondition
     label = _(u"Add File Extension Condition")
-    description = _(u"A file extension condition can restrict a rule from "
-        "executing unless the target is a File with a particular extension.")
-    form_name = _(u"Configure element")
+    description = _(
+        u"A file extension condition can restrict a rule from "
+        u"executing unless the target is a File with a particular extension.")
 
     def create(self, data):
         c = FileExtensionCondition()
-        form.applyChanges(c, self.form_fields, data)
+        form.applyChanges(self, c, data)
         return c
 
 
 class FileExtensionEditForm(EditForm):
     """An edit form for portal type conditions
-
-    Formlib does all the magic here.
     """
-    form_fields = form.FormFields(IFileExtensionCondition)
+    schema = IFileExtensionCondition
     label = _(u"Edit File Extension Condition")
-    description = _(u"A file extension condition can restrict a rule from "
-        "executing unless the target is a File with a particular extension.")
-    form_name = _(u"Configure element")
+    description = _(
+        u"A file extension condition can restrict a rule from "
+        u"executing unless the target is a File with a particular extension.")

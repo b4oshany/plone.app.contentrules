@@ -4,9 +4,9 @@ from smtplib import SMTPException
 
 from plone.contentrules.rule.interfaces import IRuleElementData, IExecutable
 from plone.stringinterp.interfaces import IStringInterpolator
+from z3c.form import form
 from zope.component import adapts
 from zope.component.interfaces import ComponentLookupError
-from zope.formlib import form
 from zope.interface import Interface, implements
 from zope import schema
 from zope.globalrequest import getRequest
@@ -28,26 +28,31 @@ logger = logging.getLogger("plone.contentrules")
 class IMailAction(Interface):
     """Definition of the configuration available for a mail action
     """
-    subject = schema.TextLine(title=_(u"Subject"),
-                              description=_(u"Subject of the message"),
-                              required=True)
-    source = schema.TextLine(title=_(u"Email source"),
-                             description=_("The email address that sends the "
-                                           "email. If no email is provided here, "
-                                           "it will use the portal from address."),
-                             required=False)
-    recipients = schema.TextLine(title=_(u"Email recipients"),
-                                description=_("The email where you want to "
-                                              "send this message. To send it to "
-                                              "different email addresses, "
-                                              "just separate them with ,"),
-                                required=True)
-    exclude_actor = schema.Bool(title=_(u"Exclude actor from recipients"),
-                                description=_("Do not send the email to the user "
-                                              "that did the action."))
-    message = schema.Text(title=_(u"Message"),
-                          description=_(u"The message that you want to mail."),
-                          required=True)
+    subject = schema.TextLine(
+        title=_(u"Subject"),
+        description=_(u"Subject of the message"),
+        required=True)
+    source = schema.TextLine(
+        title=_(u"Email source"),
+        description=_("The email address that sends the "
+                      "email. If no email is provided here, "
+                      "it will use the portal from address."),
+        required=False)
+    recipients = schema.TextLine(
+        title=_(u"Email recipients"),
+        description=_("The email where you want to "
+                      "send this message. To send it to "
+                      "different email addresses, "
+                      "just separate them with ,"),
+        required=True)
+    exclude_actor = schema.Bool(
+        title=_(u"Exclude actor from recipients"),
+        description=_("Do not send the email to the user "
+                      "that did the action."))
+    message = schema.Text(
+        title=_(u"Message"),
+        description=_(u"The message that you want to mail."),
+        required=True)
 
 
 class MailAction(SimpleItem):
@@ -159,17 +164,16 @@ class MailAddForm(AddForm):
     """
     An add form for the mail action
     """
-    form_fields = form.FormFields(IMailAction)
+    schema = IMailAction
     label = _(u"Add Mail Action")
     description = _(u"A mail action can mail different recipient.")
-    form_name = _(u"Configure element")
 
     # custom template will allow us to add help text
     template = ViewPageTemplateFile('templates/mail.pt')
 
     def create(self, data):
         a = MailAction()
-        form.applyChanges(a, self.form_fields, data)
+        form.applyChanges(self, a, data)
         return a
 
 
@@ -177,10 +181,9 @@ class MailEditForm(EditForm):
     """
     An edit form for the mail action
     """
-    form_fields = form.FormFields(IMailAction)
+    schema = IMailAction
     label = _(u"Edit Mail Action")
     description = _(u"A mail action can mail different recipient.")
-    form_name = _(u"Configure element")
 
     # custom template will allow us to add help text
     template = ViewPageTemplateFile('templates/mail.pt')

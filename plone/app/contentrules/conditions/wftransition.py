@@ -1,6 +1,6 @@
 from plone.contentrules.rule.interfaces import IExecutable, IRuleElementData
+from z3c.form import form
 from zope.component import adapts
-from zope.formlib import form
 from zope.interface import implements, Interface
 from zope import schema
 
@@ -17,10 +17,12 @@ class IWorkflowTransitionCondition(Interface):
     This is also used to create add and edit forms, below.
     """
 
-    wf_transitions = schema.Set(title=_(u"Workflow transition"),
-                           description=_(u"The workflow transitions to check for."),
-                           required=True,
-                           value_type=schema.Choice(vocabulary="plone.app.vocabularies.WorkflowTransitions"))
+    wf_transitions = schema.Set(
+        title=_(u"Workflow transition"),
+        description=_(u"The workflow transitions to check for."),
+        required=True,
+        value_type=schema.Choice(
+            vocabulary="plone.app.vocabularies.WorkflowTransitions"))
 
 
 class WorkflowTransitionCondition(SimpleItem):
@@ -54,15 +56,14 @@ class WorkflowTransitionConditionExecutor(object):
 class WorkflowTransitionAddForm(AddForm):
     """An add form for workflow transition conditions.
     """
-    form_fields = form.FormFields(IWorkflowTransitionCondition)
+    schema = IWorkflowTransitionCondition
     label = _(u"Add Workflow Transition Condition")
     description = _(u"A workflow transition condition can restrict rules to "
         "execute only after a certain transition.")
-    form_name = _(u"Configure element")
 
     def create(self, data):
         c = WorkflowTransitionCondition()
-        form.applyChanges(c, self.form_fields, data)
+        form.applyChanges(self, c, data)
         return c
 
 
@@ -71,8 +72,7 @@ class WorkflowTransitionEditForm(EditForm):
 
     Formlib does all the magic here.
     """
-    form_fields = form.FormFields(IWorkflowTransitionCondition)
+    schema = IWorkflowTransitionCondition
     label = _(u"Edit Workflow Transition Condition")
     description = _(u"A workflow transition condition can restrict rules to "
         "execute only after a certain transition.")
-    form_name = _(u"Configure element")

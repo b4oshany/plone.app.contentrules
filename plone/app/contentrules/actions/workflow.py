@@ -1,7 +1,7 @@
 from plone.contentrules.rule.interfaces import IExecutable, IRuleElementData
+from z3c.form import form
 from zope.interface import implements, Interface
 from zope.component import adapts
-from zope.formlib import form
 from zope import schema
 
 from OFS.SimpleItem import SimpleItem
@@ -20,10 +20,11 @@ class IWorkflowAction(Interface):
     This is also used to create add and edit forms, below.
     """
 
-    transition = schema.Choice(title=_(u"Transition"),
-                               description=_(u"Select the workflow transition to attempt"),
-                               required=True,
-                               vocabulary='plone.app.vocabularies.WorkflowTransitions')
+    transition = schema.Choice(
+        title=_(u"Transition"),
+        description=_(u"Select the workflow transition to attempt"),
+        required=True,
+        vocabulary='plone.app.vocabularies.WorkflowTransitions')
 
 
 class WorkflowAction(SimpleItem):
@@ -79,21 +80,19 @@ class WorkflowActionExecutor(object):
 class WorkflowAddForm(AddForm):
     """An add form for workflow actions.
     """
-    form_fields = form.FormFields(IWorkflowAction)
+    schema = IWorkflowAction
     label = _(u"Add Workflow Action")
     description = _(u"A workflow action triggers a workflow transition on an object.")
-    form_name = _(u"Configure element")
 
     def create(self, data):
         a = WorkflowAction()
-        form.applyChanges(a, self.form_fields, data)
+        form.applyChanges(self, a, data)
         return a
 
 
 class WorkflowEditForm(EditForm):
     """An edit form for workflow rule actions.
     """
-    form_fields = form.FormFields(IWorkflowAction)
+    schema = IWorkflowAction
     label = _(u"Edit Workflow Action")
     description = _(u"A workflow action triggers a workflow transition on an object.")
-    form_name = _(u"Configure element")
