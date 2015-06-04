@@ -4,6 +4,9 @@ Changelog
 4.0.5 (unreleased)
 ------------------
 
+- simplify control panel disable rules description
+  [vangheem]
+
 - Move to z3c.form
   [vangheem]
 

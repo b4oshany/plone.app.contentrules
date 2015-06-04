@@ -50,8 +50,7 @@
                        tal:attributes="checked python:view.globally_disabled() and 'checked' or None" />
                 <label for="rules_disable_globally" i18n:translate="">Disable globally</label>
                 <div class="formHelp" i18n:translate="">
-                    Whether or not content rules should be disabled globally. If this is selected,
-                    no rules will be executed anywhere in the portal.
+                    If this is selected, no rules will be executed anywhere in the portal.
                 </div>
             </div>
 
